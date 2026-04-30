@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manddle · Today</title>
+  <link rel="icon" href="favicon.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #fdf6f0; --panel: #ffffff; --line: #ddd0c4; --text: #2d2d2d;
+      --muted: #6b5e53; --accent: #ff9248; --green: #2ecc71; --green-hover: #27ae60;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --sidebar-width: 260px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    .sidebar {
+      width: var(--sidebar-width); background: var(--panel); border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; padding: 32px 0; position: fixed; height: 100vh; box-shadow: var(--shadow);
+    }
+    .sidebar-logo { text-align: center; margin-bottom: 48px; }
+    .sidebar-logo img { height: 48px; }
+    .nav-items { flex:1; display: flex; flex-direction: column; gap: 8px; padding: 0 20px; }
+    .nav-item { display: block; padding: 12px 16px; text-decoration: none; color: var(--muted); font-weight: 500; border-radius: 12px; }
+    .nav-item:hover, .nav-item.active { background: var(--accent); color: white; }
+    .settings-link { margin: 0 20px 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .settings-link a { display: block; text-decoration: none; color: var(--muted); font-weight: 500; padding: 8px 0; }
+    .settings-link a:hover { color: var(--accent); }
+    .main { margin-left: var(--sidebar-width); flex:1; overflow-y: auto; padding: 32px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { font-size: 2rem; font-weight: 600; margin-bottom: 8px; }
+    .date-badge { color: var(--muted); margin-bottom: 24px; border-left: 4px solid var(--accent); padding-left: 12px; }
+    .task-list { display: flex; flex-direction: column; gap: 16px; }
+    .task-card { background: var(--panel); border-radius: 12px; padding: 20px; border: 1px solid var(--line); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .task-info { flex: 1; }
+    .task-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 6px; }
+    .task-period { font-size: 0.7rem; background: var(--bg); padding: 2px 10px; border-radius: 20px; display: inline-block; color: var(--accent); }
+    .task-desc { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+    .complete-btn { background: var(--green); border: none; padding: 8px 20px; border-radius: 8px; color: white; font-weight: 500; cursor: pointer; }
+    .complete-btn:hover { background: var(--green-hover); }
+    .empty-state { text-align: center; padding: 60px 20px; background: var(--panel); border-radius: 16px; color: var(--muted); }
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: fixed; bottom:0; flex-direction: row; justify-content: space-around; padding: 8px 16px; border-right: none; border-top: 1px solid var(--line); }
+      .sidebar-logo, .settings-link { display: none; }
+      .nav-items { flex-direction: row; gap: 8px; padding: 0; }
+      .nav-item { padding: 8px 12px; font-size: 0.8rem; }
+      .main { margin-left: 0; margin-bottom: 60px; padding: 20px; }
+      .task-card { flex-direction: column; align-items: flex-start; }
+      .complete-btn { align-self: stretch; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo"><img src="logo.png" alt="Manddle"></div>
+  <div class="nav-items">
+    <a href="chat.html" class="nav-item">Chat</a>
+    <a href="tasks.html" class="nav-item">Tasks</a>
+    <a href="today.html" class="nav-item active">Today</a>
+    <a href="progress.html" class="nav-item">Progress</a>
+  </div>
+  <div class="settings-link"><a href="#" id="openSettingsBtn">Settings</a></div>
+</div>
+<div class="main">
+  <div class="container">
+    <h1>Today's Tasks</h1>
+    <div class="date-badge" id="dateDisplay"></div>
+    <div id="taskList" class="task-list">Loading...</div>
+  </div>
+</div>
+<div id="settingsModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;"><div class="modal-content" style="background:var(--panel); border-radius:24px; padding:32px; max-width:400px; width:90%;"><h3>Settings</h3><p>Update your profile in Chat page.</p><button class="cancel-btn" id="closeModal" style="background:var(--bg); border:1px solid var(--line); padding:8px 16px; border-radius:8px;">Close</button></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = { apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI", authDomain: "manddle.firebaseapp.com", projectId: "manddle", storageBucket: "manddle.firebasestorage.app", messagingSenderId: "126135395338", appId: "1:126135395338:web:22fd0307b5afab46636bf3" };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  let currentUser = null;
+  const todayStr = new Date().toISOString().slice(0,10);
+  document.getElementById("dateDisplay").innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  auth.onAuthStateChanged(user => { if (!user) window.location.href = "login.html"; else { currentUser = user; loadTodayTasks(); } });
+  async function loadTodayTasks() {
+    const container = document.getElementById("taskList");
+    container.innerHTML = '<div class="empty-state">Loading tasks...</div>';
+    try {
+      const tasksSnap = await db.collection("tasks").where("uid", "==", currentUser.uid).get();
+      const tasks = []; tasksSnap.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
+      const dueTasks = [];
+      for (const task of tasks) if (await isTaskDueToday(task)) dueTasks.push(task);
+      if (dueTasks.length === 0) { container.innerHTML = '<div class="empty-state">No tasks due today. Enjoy your day.</div>'; return; }
+      let html = '';
+      for (const task of dueTasks) {
+        html += `<div class="task-card" id="task-${task.id}"><div class="task-info"><div class="task-title">${escapeHtml(task.title)} <span class="task-period">${task.period||'daily'}</span></div>${task.description?`<div class="task-desc">${escapeHtml(task.description)}</div>`:''}</div><button class="complete-btn" onclick="markComplete('${task.id}')">Complete</button></div>`;
+      }
+      container.innerHTML = html;
+    } catch(e) { console.error(e); container.innerHTML = '<div class="empty-state">Error loading tasks.</div>'; }
+  }
+  async function isTaskDueToday(task) {
+    const period = task.period || 'daily';
+    const completionsSnap = await db.collection("tasks").doc(task.id).collection("completions").where("date", "==", todayStr).get();
+    if (!completionsSnap.empty) return false;
+    if (period === 'daily') return true;
+    const createdDate = new Date(task.created_at || Date.now());
+    if (period === 'monthly') return new Date().getDate() === createdDate.getDate();
+    if (period === 'yearly') return (new Date().getMonth() === createdDate.getMonth() && new Date().getDate() === createdDate.getDate());
+    return false;
+  }
+  window.markComplete = async (taskId) => {
+    const btn = document.querySelector(`#task-${taskId} .complete-btn`);
+    if (btn) btn.disabled = true;
+    try {
+      await db.collection("tasks").doc(taskId).collection("completions").add({ date: todayStr, completedAt: Date.now() });
+      const card = document.getElementById(`task-${taskId}`);
+      if (card) card.remove();
+      if (document.querySelectorAll('.task-card').length === 0) document.getElementById("taskList").innerHTML = '<div class="empty-state">All done for today. Great job!</div>';
+    } catch(e) { alert("Could not mark complete."); if(btn) btn.disabled = false; }
+  };
+  function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+  document.getElementById("openSettingsBtn").onclick = (e) => { e.preventDefault(); document.getElementById("settingsModal").style.display = "flex"; };
+  document.getElementById("closeModal").onclick = () => document.getElementById("settingsModal").style.display = "none";
+</script>
+</body>
+</html>

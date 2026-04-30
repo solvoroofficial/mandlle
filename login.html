@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Manddle · Login</title>
+  <link rel="icon" href="favicon.png">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #fdf6f0;
+      --panel: #ffffff;
+      --line: #ddd0c4;
+      --text: #2d2d2d;
+      --muted: #6b5e53;
+      --accent: #ff9248;
+      --accent-hover: #e07b2e;
+      --error: #e07b2e;
+      --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--panel);
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 440px;
+      width: 100%;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+
+    .logo {
+      height: 56px;
+      margin-bottom: 24px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      text-align: center;
+      letter-spacing: -0.3px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin-bottom: 32px;
+      font-size: 0.9rem;
+    }
+
+    .auth-mode-toggle {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .mode-btn {
+      background: none;
+      border: none;
+      padding: 12px 0;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.2s;
+      flex: 1;
+      text-align: center;
+    }
+
+    .mode-btn.active {
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--bg);
+      font-family: inherit;
+      font-size: 0.95rem;
+      transition: 0.2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(255, 146, 72, 0.2);
+    }
+
+    .error-message {
+      color: var(--error);
+      font-size: 0.8rem;
+      margin-top: 6px;
+      display: none;
+    }
+
+    .primary-btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+
+    .primary-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 24px 0;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
+
+    .google-btn {
+      width: 100%;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .google-btn:hover {
+      background: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .switch-mode-text {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .switch-link {
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    .switch-link:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .login-card {
+        padding: 32px 24px;
+      }
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="login-card">
+  <img src="logo.png" alt="Manddle" class="logo">
+  <h1>Welcome to Manddle</h1>
+  <div class="subtitle">Your AI productivity companion</div>
+
+  <!-- Toggle between Login and Sign Up -->
+  <div class="auth-mode-toggle">
+    <button class="mode-btn active" id="loginModeBtn">Sign In</button>
+    <button class="mode-btn" id="signupModeBtn">Create Account</button>
+  </div>
+
+  <!-- Email/Password Form -->
+  <div id="emailForm">
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="emailInput" placeholder="your@email.com">
+      <div class="error-message" id="emailError"></div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="passwordInput" placeholder="••••••••">
+      <div class="error-message" id="passwordError"></div>
+    </div>
+    <button class="primary-btn" id="submitBtn">Sign In</button>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span>or continue with</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <button class="google-btn" id="googleBtn">
+    <span>G</span> Google
+  </button>
+
+  <div class="switch-mode-text" id="switchText">
+    Don't have an account? <span class="switch-link" id="switchToSignup">Create one</span>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI",
+    authDomain: "manddle.firebaseapp.com",
+    projectId: "manddle",
+    storageBucket: "manddle.firebasestorage.app",
+    messagingSenderId: "126135395338",
+    appId: "1:126135395338:web:22fd0307b5afab46636bf3"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+
+  // DOM elements
+  const loginModeBtn = document.getElementById("loginModeBtn");
+  const signupModeBtn = document.getElementById("signupModeBtn");
+  const submitBtn = document.getElementById("submitBtn");
+  const emailInput = document.getElementById("emailInput");
+  const passwordInput = document.getElementById("passwordInput");
+  const emailError = document.getElementById("emailError");
+  const passwordError = document.getElementById("passwordError");
+  const switchToSignup = document.getElementById("switchToSignup");
+  const switchText = document.getElementById("switchText");
+  const googleBtn = document.getElementById("googleBtn");
+
+  let isLoginMode = true;
+
+  function setMode(login) {
+    isLoginMode = login;
+    if (login) {
+      loginModeBtn.classList.add("active");
+      signupModeBtn.classList.remove("active");
+      submitBtn.textContent = "Sign In";
+      switchText.innerHTML = `Don't have an account? <span class="switch-link" id="switchToSignup">Create one</span>`;
+      document.getElementById("switchToSignup").onclick = () => setMode(false);
+    } else {
+      loginModeBtn.classList.remove("active");
+      signupModeBtn.classList.add("active");
+      submitBtn.textContent = "Create Account";
+      switchText.innerHTML = `Already have an account? <span class="switch-link" id="switchToLogin">Sign in</span>`;
+      document.getElementById("switchToLogin").onclick = () => setMode(true);
+    }
+    // Clear errors
+    emailError.style.display = "none";
+    passwordError.style.display = "none";
+    emailError.textContent = "";
+    passwordError.textContent = "";
+  }
+
+  loginModeBtn.onclick = () => setMode(true);
+  signupModeBtn.onclick = () => setMode(false);
+  if (switchToSignup) switchToSignup.onclick = () => setMode(false);
+
+  // Handle form submission
+  async function handleAuth() {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+
+    // Basic validation
+    let valid = true;
+    if (!email) {
+      emailError.textContent = "Email is required";
+      emailError.style.display = "block";
+      valid = false;
+    } else {
+      emailError.style.display = "none";
+    }
+    if (!password) {
+      passwordError.textContent = "Password is required";
+      passwordError.style.display = "block";
+      valid = false;
+    } else if (password.length < 6 && !isLoginMode) {
+      passwordError.textContent = "Password must be at least 6 characters";
+      passwordError.style.display = "block";
+      valid = false;
+    } else {
+      passwordError.style.display = "none";
+    }
+    if (!valid) return;
+
+    try {
+      if (isLoginMode) {
+        await auth.signInWithEmailAndPassword(email, password);
+        window.location.href = "chat.html";
+      } else {
+        await auth.createUserWithEmailAndPassword(email, password);
+        window.location.href = "chat.html";
+      }
+    } catch (error) {
+      let message = error.message;
+      if (error.code === "auth/user-not-found") message = "No account found with this email.";
+      else if (error.code === "auth/wrong-password") message = "Incorrect password.";
+      else if (error.code === "auth/email-already-in-use") message = "Email already registered. Sign in instead.";
+      else if (error.code === "auth/weak-password") message = "Password should be at least 6 characters.";
+      else message = error.message;
+      passwordError.textContent = message;
+      passwordError.style.display = "block";
+    }
+  }
+
+  submitBtn.onclick = handleAuth;
+  emailInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleAuth(); });
+  passwordInput.addEventListener("keypress", (e) => { if (e.key === "Enter") handleAuth(); });
+
+  // Google Sign-In
+  googleBtn.onclick = () => {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider)
+      .then(() => window.location.href = "chat.html")
+      .catch((error) => {
+        passwordError.textContent = error.message;
+        passwordError.style.display = "block";
+      });
+  };
+</script>
+</body>
+</html>

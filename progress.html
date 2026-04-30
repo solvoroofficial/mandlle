@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manddle · Progress</title>
+  <link rel="icon" href="favicon.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #fdf6f0; --panel: #ffffff; --line: #ddd0c4; --text: #2d2d2d;
+      --muted: #6b5e53; --accent: #ff9248;
+      --shadow: 0 4px 12px rgba(0,0,0,0.05);
+      --sidebar-width: 260px;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    .sidebar {
+      width: var(--sidebar-width); background: var(--panel); border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; padding: 32px 0; position: fixed; height: 100vh; box-shadow: var(--shadow);
+    }
+    .sidebar-logo { text-align: center; margin-bottom: 48px; }
+    .sidebar-logo img { height: 48px; }
+    .nav-items { flex:1; display: flex; flex-direction: column; gap: 8px; padding: 0 20px; }
+    .nav-item { display: block; padding: 12px 16px; text-decoration: none; color: var(--muted); font-weight: 500; border-radius: 12px; }
+    .nav-item:hover, .nav-item.active { background: var(--accent); color: white; }
+    .settings-link { margin: 0 20px 24px; padding-top: 24px; border-top: 1px solid var(--line); }
+    .settings-link a { display: block; text-decoration: none; color: var(--muted); font-weight: 500; padding: 8px 0; }
+    .settings-link a:hover { color: var(--accent); }
+    .main { margin-left: var(--sidebar-width); flex:1; overflow-y: auto; padding: 32px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: var(--panel); border-radius: 24px; padding: 40px 32px; text-align: center; box-shadow: var(--shadow); border: 1px solid var(--line); }
+    h2 { font-size: 2rem; font-weight: 600; margin-bottom: 20px; }
+    p { color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .stats-preview { display: flex; justify-content: center; gap: 40px; margin: 32px 0; flex-wrap: wrap; }
+    .stat { background: var(--bg); padding: 16px 24px; border-radius: 20px; min-width: 120px; }
+    .stat-number { font-size: 2.5rem; font-weight: 800; color: var(--accent); }
+    .stat-label { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+    .coming-soon { background: var(--accent); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; display: inline-block; }
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: fixed; bottom:0; flex-direction: row; justify-content: space-around; padding: 8px 16px; border-right: none; border-top: 1px solid var(--line); }
+      .sidebar-logo, .settings-link { display: none; }
+      .nav-items { flex-direction: row; gap: 8px; padding: 0; }
+      .nav-item { padding: 8px 12px; font-size: 0.8rem; }
+      .main { margin-left: 0; margin-bottom: 60px; padding: 20px; }
+      .stats-preview { gap: 20px; }
+      .stat { padding: 12px 16px; min-width: 90px; }
+      .stat-number { font-size: 1.8rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo"><img src="logo.png" alt="Manddle"></div>
+  <div class="nav-items">
+    <a href="chat.html" class="nav-item">Chat</a>
+    <a href="tasks.html" class="nav-item">Tasks</a>
+    <a href="today.html" class="nav-item">Today</a>
+    <a href="progress.html" class="nav-item active">Progress</a>
+  </div>
+  <div class="settings-link"><a href="#" id="openSettingsBtn">Settings</a></div>
+</div>
+<div class="main">
+  <div class="container">
+    <div class="card">
+      <h2>Your Progress</h2>
+      <p>Track your completed tasks and streaks. More insights coming soon.</p>
+      <div class="stats-preview" id="statsPreview">
+        <div class="stat"><div class="stat-number">—</div><div class="stat-label">Tasks Done</div></div>
+        <div class="stat"><div class="stat-number">—</div><div class="stat-label">Active Streak</div></div>
+        <div class="stat"><div class="stat-number">—%</div><div class="stat-label">Completion Rate</div></div>
+      </div>
+      <div class="coming-soon">Advanced Analytics Coming</div>
+    </div>
+  </div>
+</div>
+<div id="settingsModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center; z-index:1000;"><div class="modal-content" style="background:var(--panel); border-radius:24px; padding:32px; max-width:400px; width:90%;"><h3>Settings</h3><p>Update your profile in Chat page.</p><button class="cancel-btn" id="closeModal" style="background:var(--bg); border:1px solid var(--line); padding:8px 16px; border-radius:8px;">Close</button></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = { apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI", authDomain: "manddle.firebaseapp.com", projectId: "manddle", storageBucket: "manddle.firebasestorage.app", messagingSenderId: "126135395338", appId: "1:126135395338:web:22fd0307b5afab46636bf3" };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) window.location.href = "login.html";
+    else {
+      const tasksSnap = await db.collection("tasks").where("uid", "==", user.uid).get();
+      let completed = 0, total = 0;
+      tasksSnap.forEach(doc => { total++; if (doc.data().status === "completed") completed++; });
+      const rate = total === 0 ? 0 : Math.round((completed / total) * 100);
+      document.getElementById("statsPreview").innerHTML = `
+        <div class="stat"><div class="stat-number">${completed}</div><div class="stat-label">Tasks Done</div></div>
+        <div class="stat"><div class="stat-number">0</div><div class="stat-label">Streak</div></div>
+        <div class="stat"><div class="stat-number">${rate}%</div><div class="stat-label">Completion</div></div>
+      `;
+    }
+  });
+  document.getElementById("openSettingsBtn").onclick = (e) => { e.preventDefault(); document.getElementById("settingsModal").style.display = "flex"; };
+  document.getElementById("closeModal").onclick = () => document.getElementById("settingsModal").style.display = "none";
+</script>
+</body>
+</html>
