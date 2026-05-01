@@ -2,35 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Manddle · Tasks</title>
-  <link rel="icon" href="favicon.png">
+  <!-- High-res favicon definitions -->
+  <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.png">
   <style>
-    /* Same as chat sidebar + main content difference */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg: #fefaf5; --panel: #ffffff; --line: #f0e6dc; --text: #1c1c1e;
       --muted: #6e6e73; --primary-light: #FFE5B4; --secondary: #FFA500;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
-      --sidebar-width: 280px; --radius-md: 16px; --radius-lg: 24px;
+      --secondary-hover: #e69500; --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --sidebar-width: 280px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 40px;
     }
-    body { font-family: -apple-system, 'SF Pro Text', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+    body { font-family: -apple-system, 'SF Pro Text', 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+    /* Desktop Sidebar */
     .sidebar {
       width: var(--sidebar-width); background: var(--panel); border-right: 1px solid var(--line);
-      display: flex; flex-direction: column; position: fixed; height: 100vh;
+      display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 10;
       box-shadow: var(--shadow-sm);
     }
     .sidebar-logo { padding: 32px 28px 36px 28px; display: flex; align-items: center; gap: 12px; }
-    .sidebar-logo img { height: 44px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); }
+    .sidebar-logo img { height: 44px; width: auto; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); }
     .sidebar-logo span { font-size: 1.55rem; font-weight: 590; background: linear-gradient(135deg, #2c2c2e 0%, var(--secondary) 100%); background-clip: text; -webkit-background-clip: text; color: transparent; }
-    .nav-items { flex:1; display: flex; flex-direction: column; gap: 6px; padding: 0 20px; }
-    .nav-item, .settings-nav-item { display: flex; gap: 12px; padding: 12px 18px; text-decoration: none; color: var(--muted); font-weight: 500; border-radius: var(--radius-md); transition: 0.2s; }
+    .nav-items { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 0 20px; }
+    .nav-item, .settings-nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 18px;
+      text-decoration: none; color: var(--muted); font-weight: 500; border-radius: var(--radius-md);
+      transition: 0.2s;
+    }
     .nav-item:hover, .settings-nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text); }
-    .nav-item.active { background: var(--primary-light); color: var(--secondary); font-weight: 540; }
+    .nav-item.active, .settings-nav-item.active { background: var(--primary-light); color: var(--secondary); font-weight: 540; }
     .profile-section { margin: 0 20px 20px 20px; border-top: 1px solid var(--line); padding-top: 16px; }
     .profile-item { padding: 12px 18px; border-radius: var(--radius-md); cursor: pointer; }
     .profile-item:hover { background: rgba(0,0,0,0.04); }
-    .main { margin-left: var(--sidebar-width); flex:1; overflow-y: auto; padding: 32px; }
+
+    /* Main content area */
+    .main { margin-left: var(--sidebar-width); flex: 1; overflow-y: auto; padding: 32px; }
     .container { max-width: 900px; margin: 0 auto; }
     h2 { font-size: 1.8rem; font-weight: 600; margin-bottom: 8px; }
     .task-count { color: var(--muted); margin-bottom: 24px; }
@@ -43,18 +54,73 @@
     .delete-btn { background: none; border: none; color: #e07b2e; cursor: pointer; padding: 6px 12px; border-radius: 6px; }
     .delete-btn:hover { background: rgba(224,123,46,0.1); }
     .empty-state { text-align: center; padding: 60px 20px; background: var(--panel); border-radius: var(--radius-lg); color: var(--muted); }
+
+    /* Modal (profile) */
     .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); align-items: center; justify-content: center; z-index: 1000; }
-    .modal-content { background: var(--panel); padding: 32px; max-width: 400px; width: 90%; border-radius: var(--radius-lg); border: 1px solid var(--line); }
+    .modal-content { background: var(--panel); padding: 32px; max-width: 400px; width: 90%; border-radius: var(--radius-lg); border: 1px solid var(--line); text-align: center; }
+    .modal-content p { margin-bottom: 20px; }
+    .cancel-btn { background: var(--bg); color: var(--text); border: 1px solid var(--line); padding: 10px 24px; border-radius: var(--radius-pill); font-weight: 500; cursor: pointer; transition: 0.2s; }
+    .cancel-btn:hover { background: rgba(0,0,0,0.04); }
+
+    /* Mobile specific: floating buttons + bottom menu */
+    .mobile-top-left, .mobile-top-right {
+      display: none;
+      position: fixed;
+      z-index: 150;
+      background: var(--panel);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: 0.2s;
+      border: 1px solid var(--line);
+      backdrop-filter: blur(4px);
+    }
+    .mobile-top-left { top: 20px; left: 20px; }
+    .mobile-top-right { top: 20px; right: 20px; font-size: 24px; font-weight: 500; color: var(--secondary); background: var(--panel); }
+    .mobile-top-left img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block; }
+    .mobile-top-right:hover, .mobile-top-left:hover { transform: scale(1.02); background: var(--primary-light); }
+
+    .mobile-bottom-menu {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 16px;
+      right: 16px;
+      background: var(--panel);
+      border-radius: 32px;
+      box-shadow: 0 20px 35px -8px rgba(0,0,0,0.2);
+      padding: 24px 20px 28px;
+      z-index: 200;
+      flex-direction: column;
+      gap: 12px;
+      border: 1px solid var(--line);
+    }
+    .mobile-bottom-menu.show { display: flex; animation: fadeSlideUp 0.2s ease-out; }
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .close-menu-btn { background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--muted); align-self: flex-end; line-height: 1; padding: 6px 12px; border-radius: 40px; }
+    .nav-items-mobile { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .nav-item-mobile { display: block; padding: 14px 18px; text-decoration: none; color: var(--text); border-radius: 60px; font-weight: 500; background: var(--bg); text-align: center; }
+    .nav-item-mobile.active-mobile { background: var(--primary-light); color: var(--secondary); font-weight: 600; }
+    .mobile-profile-item { padding: 14px 18px; cursor: pointer; border-radius: 60px; background: var(--bg); text-align: center; margin-top: 4px; }
+    hr.mobile-divider { margin: 8px 0; border-color: var(--line); }
+
     @media (max-width: 768px) {
-      .sidebar { position: fixed; bottom:0; width:100%; height: auto; flex-direction: row; align-items: center; justify-content: space-evenly; padding: 8px 12px; border-top: 1px solid var(--line); background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); }
-      .sidebar-logo, .profile-section { display: none; }
-      .nav-items { flex-direction: row; gap: 6px; padding: 0; justify-content: center; }
-      .nav-item, .settings-nav-item { padding: 8px 14px; font-size: 0.85rem; border-radius: 30px; }
-      .main { margin-left: 0; margin-bottom: 68px; padding: 20px; }
+      .sidebar { display: none; }
+      .main { margin-left: 0; padding: 80px 20px 100px 20px; } /* padding-top to avoid overlapping top buttons */
+      .container { padding: 0; }
+      .mobile-top-left, .mobile-top-right { display: flex; }
+    }
+    @media (min-width: 769px) {
+      .mobile-top-left, .mobile-top-right, .mobile-bottom-menu { display: none !important; }
     }
   </style>
 </head>
 <body>
+<!-- Desktop Sidebar -->
 <div class="sidebar">
   <div class="sidebar-logo"><img src="logo.png" alt="Manddle"><span>Manddle</span></div>
   <div class="nav-items">
@@ -66,8 +132,39 @@
   </div>
   <div class="profile-section"><div class="profile-item" id="profileBtn">Profile</div></div>
 </div>
-<div class="main"><div class="container"><h2>All Tasks</h2><div class="task-count" id="taskCount">0 tasks</div><div id="taskList" class="task-list">Loading...</div></div></div>
-<div id="profileModal" class="modal"><div class="modal-content"><h3>Profile</h3><p>Update your name & interests in Chat page.</p><button class="cancel-btn" id="closeModal">Close</button></div></div>
+
+<!-- Main Content -->
+<div class="main">
+  <div class="container">
+    <h2>All Tasks</h2>
+    <div class="task-count" id="taskCount">0 tasks</div>
+    <div id="taskList" class="task-list">Loading...</div>
+  </div>
+</div>
+
+<!-- Mobile Floating Buttons -->
+<div class="mobile-top-left" id="mobileLogoBtn"><img src="logo.png" alt="Manddle" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\'%3E%3Ccircle cx=\'16\' cy=\'16\' r=\'14\' fill=\'%23FFE5B4\' stroke=\'%23FFA500\' stroke-width=\'0.8\'/%3E%3C/svg%3E';"></div>
+<div class="mobile-top-right" id="mobileMenuBtn">☰</div>
+
+<!-- Mobile Bottom Menu -->
+<div class="mobile-bottom-menu" id="mobileMenuPanel">
+  <div style="display: flex; justify-content: flex-end;"><button class="close-menu-btn" id="closeMobileMenuBtn">✕</button></div>
+  <div class="nav-items-mobile">
+    <a href="chat.html" class="nav-item-mobile" data-nav="chat">Chat</a>
+    <a href="tasks.html" class="nav-item-mobile active-mobile" data-nav="tasks">Tasks</a>
+    <a href="today.html" class="nav-item-mobile" data-nav="today">Today</a>
+    <a href="progress.html" class="nav-item-mobile" data-nav="progress">Progress</a>
+    <a href="settings.html" class="nav-item-mobile" data-nav="settings">Settings</a>
+    <hr class="mobile-divider">
+    <div class="mobile-profile-item" id="mobileProfileBtn">Profile & Preferences</div>
+  </div>
+</div>
+
+<!-- Profile Modal -->
+<div id="profileModal" class="modal">
+  <div class="modal-content"><h3>Profile</h3><p>Update your name & interests in the Chat page.</p><button class="cancel-btn" id="closeModal">Close</button></div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -75,21 +172,57 @@
   const firebaseConfig = { apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI", authDomain: "manddle.firebaseapp.com", projectId: "manddle", storageBucket: "manddle.firebasestorage.app", messagingSenderId: "126135395338", appId: "1:126135395338:web:22fd0307b5afab46636bf3" };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth(); const db = firebase.firestore();
+
+  // DOM elements
+  const taskListDiv = document.getElementById("taskList");
+  const taskCountSpan = document.getElementById("taskCount");
+  const profileModal = document.getElementById("profileModal");
+  const profileBtn = document.getElementById("profileBtn");
+  const closeModal = document.getElementById("closeModal");
+  const mobileProfileBtn = document.getElementById("mobileProfileBtn");
+  const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+  const mobileMenuPanel = document.getElementById("mobileMenuPanel");
+  const closeMobileMenu = document.getElementById("closeMobileMenuBtn");
+  const mobileLogoBtn = document.getElementById("mobileLogoBtn");
+
+  // Mobile menu functions
+  function closeBottomMenu() { mobileMenuPanel.classList.remove("show"); }
+  function openBottomMenu() { mobileMenuPanel.classList.add("show"); }
+  function toggleMobileMenu(e) { e?.stopPropagation(); if(mobileMenuPanel.classList.contains("show")) closeBottomMenu(); else openBottomMenu(); }
+  function handleDocumentClick(e) {
+    if(!mobileMenuPanel) return;
+    const isMenuClick = mobileMenuPanel.contains(e.target);
+    const isMenuBtnClick = mobileMenuBtn?.contains(e.target);
+    if(!isMenuClick && !isMenuBtnClick && mobileMenuPanel.classList.contains("show")) closeBottomMenu();
+  }
+
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+  if (closeMobileMenu) closeMobileMenu.addEventListener("click", closeBottomMenu);
+  document.addEventListener("click", handleDocumentClick);
+  if (mobileMenuPanel) mobileMenuPanel.addEventListener("click", (e) => e.stopPropagation());
+  if (mobileLogoBtn) mobileLogoBtn.addEventListener("click", () => { window.location.href = "chat.html"; });
+
+  // Profile modal
+  function showProfileModal() { profileModal.style.display = "flex"; }
+  profileBtn.onclick = showProfileModal;
+  if(mobileProfileBtn) mobileProfileBtn.onclick = () => { closeBottomMenu(); showProfileModal(); };
+  closeModal.onclick = () => profileModal.style.display = "none";
+
+  // Data logic
   auth.onAuthStateChanged(user => { if (!user) window.location.href = "login.html"; else loadTasks(user.uid); });
+
   async function loadTasks(uid) {
     const snap = await db.collection("tasks").where("uid", "==", uid).get();
-    const container = document.getElementById("taskList"); const countSpan = document.getElementById("taskCount");
-    if (snap.empty) { container.innerHTML = '<div class="empty-state">No tasks yet. Create one in Chat.</div>'; countSpan.textContent = "0 tasks"; return; }
+    if (snap.empty) { taskListDiv.innerHTML = '<div class="empty-state">No tasks yet. Create one in Chat.</div>'; taskCountSpan.textContent = "0 tasks"; return; }
     let tasks = []; snap.forEach(doc => tasks.push({ id: doc.id, ...doc.data() }));
     tasks.sort((a,b)=>(a.created_at||0)-(b.created_at||0));
     let html = "";
     tasks.forEach(t => { html += `<div class="task-card"><div class="task-title"><span>${escapeHtml(t.title)}</span><span class="task-period">${t.period||'daily'}</span></div>${t.description?`<div class="task-desc">${escapeHtml(t.description)}</div>`:''}<div style="display:flex; justify-content:space-between;"><span class="task-status">${t.status||'pending'}</span><button class="delete-btn" onclick="deleteTask('${t.id}')">Delete</button></div></div>`; });
-    container.innerHTML = html; countSpan.textContent = `${snap.size} task${snap.size===1?'':'s'}`;
+    taskListDiv.innerHTML = html; taskCountSpan.textContent = `${snap.size} task${snap.size===1?'':'s'}`;
   }
+
   function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
   window.deleteTask = async (id) => { if(confirm("Delete this task?")) { await db.collection("tasks").doc(id).delete(); loadTasks(auth.currentUser.uid); } };
-  document.getElementById("profileBtn").onclick = () => document.getElementById("profileModal").style.display = "flex";
-  document.getElementById("closeModal").onclick = () => document.getElementById("profileModal").style.display = "none";
 </script>
 </body>
 </html>
