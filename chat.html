@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Manddle · Chat</title>
+  <link rel="icon" href="favicon.png">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #fefaf5; --panel: #ffffff; --line: #f0e6dc; --text: #1c1c1e;
+      --muted: #6e6e73; --primary-light: #FFE5B4; --secondary: #FFA500;
+      --secondary-hover: #e69500; --bot-bg: #ffffff; --user-bg: #FFE5B4;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+      --sidebar-width: 280px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 40px;
+    }
+    body { font-family: -apple-system, 'SF Pro Text', 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; font-weight: 450; letter-spacing: -0.2px; }
+
+    /* Sidebar (identical on all pages) */
+    .sidebar {
+      width: var(--sidebar-width); background: var(--panel); border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 10;
+      box-shadow: var(--shadow-sm);
+    }
+    .sidebar-logo { padding: 32px 28px 36px 28px; display: flex; align-items: center; gap: 12px; }
+    .sidebar-logo img { height: 44px; width: auto; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); }
+    .sidebar-logo span { font-size: 1.55rem; font-weight: 590; background: linear-gradient(135deg, #2c2c2e 0%, var(--secondary) 100%); background-clip: text; -webkit-background-clip: text; color: transparent; }
+    .nav-items { flex: 1; display: flex; flex-direction: column; gap: 6px; padding: 0 20px; }
+    .nav-item, .settings-nav-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px 18px;
+      text-decoration: none; color: var(--muted); font-weight: 500; border-radius: var(--radius-md);
+      transition: 0.2s;
+    }
+    .nav-item:hover, .settings-nav-item:hover { background: rgba(0,0,0,0.04); color: var(--text); }
+    .nav-item.active, .settings-nav-item.active { background: var(--primary-light); color: var(--secondary); font-weight: 540; }
+    .profile-section { margin: 0 20px 20px 20px; border-top: 1px solid var(--line); padding-top: 16px; }
+    .profile-item { padding: 12px 18px; border-radius: var(--radius-md); cursor: pointer; }
+    .profile-item:hover { background: rgba(0,0,0,0.04); }
+
+    /* Main content */
+    .main { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .status-bar { padding: 14px 28px; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+    .status-left { display: flex; align-items: center; gap: 8px; }
+    .status-indicator { width: 8px; height: 8px; background: #2ecc71; border-radius: 50%; box-shadow: 0 0 0 2px rgba(46,204,113,0.2); }
+    .round-logo { width: 40px; height: 40px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); }
+    .round-logo img { width: 100%; height: 100%; object-fit: cover; }
+
+    .chat-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .chat-log { flex: 1; overflow-y: auto; padding: 28px 28px 100px 28px; display: flex; flex-direction: column; gap: 16px; }
+    .message-wrapper { display: flex; align-items: flex-start; gap: 8px; max-width: 80%; animation: fadeSlideUp 0.25s ease; }
+    .message-wrapper.user { margin-left: auto; flex-direction: row-reverse; }
+    .message-wrapper.bot { margin-right: auto; }
+    .message { padding: 12px 18px; line-height: 1.45; font-size: 0.95rem; border-radius: 22px; box-shadow: var(--shadow-sm); }
+    .message-wrapper.user .message { background: var(--user-bg); border-bottom-right-radius: 6px; }
+    .message-wrapper.bot .message { background: var(--bot-bg); border-bottom-left-radius: 6px; border: 1px solid var(--line); }
+    .delete-msg { opacity: 0; background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--muted); padding: 6px; border-radius: 20px; width: 28px; height: 28px; transition: 0.2s; }
+    .message-wrapper:hover .delete-msg { opacity: 0.6; }
+    .delete-msg:hover { opacity: 1 !important; background: rgba(0,0,0,0.08); color: #e03a3a; }
+    .message-system { background: #f5f0ea; color: var(--muted); margin: 8px auto; text-align: center; max-width: 80%; font-size: 13px; border-radius: 40px; padding: 8px 16px; }
+
+    /* Floating input */
+    .input-area { position: absolute; bottom: 20px; left: 28px; right: 28px; display: flex; gap: 12px; padding: 8px 8px 8px 20px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-radius: var(--radius-pill); box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(255,165,0,0.2); }
+    .input-area:focus-within { box-shadow: 0 8px 28px rgba(255,165,0,0.12); border-color: var(--secondary); }
+    .input-area input { flex: 1; padding: 12px 0; border: none; background: transparent; outline: none; font-size: 15px; }
+    .input-area button { padding: 8px 24px; background: var(--secondary); color: white; border: none; font-weight: 590; border-radius: var(--radius-pill); font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
+    .input-area button:hover { background: var(--secondary-hover); transform: scale(0.96); }
+
+    /* Modal */
+    .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); align-items: center; justify-content: center; z-index: 1000; }
+    .modal-content { background: var(--panel); padding: 32px; max-width: 420px; width: 90%; border-radius: var(--radius-lg); border: 1px solid var(--line); }
+    .modal-content h3 { margin-bottom: 20px; font-weight: 620; font-size: 1.65rem; }
+    .modal-content input { width: 100%; padding: 12px; border: 1px solid var(--line); background: var(--bg); border-radius: var(--radius-md); margin-bottom: 16px; }
+    .modal-buttons { display: flex; gap: 12px; margin-top: 8px; }
+    .modal-buttons button { padding: 12px 20px; border-radius: var(--radius-pill); font-weight: 520; cursor: pointer; }
+    .save-btn { background: var(--secondary); color: white; border: none; }
+    .cancel-btn { background: var(--bg); color: var(--text); border: 1px solid var(--line); }
+
+    @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .chat-log::-webkit-scrollbar { width: 6px; }
+    .chat-log::-webkit-scrollbar-track { background: transparent; }
+    .chat-log::-webkit-scrollbar-thumb { background: #d4cdc3; border-radius: 10px; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar { position: fixed; bottom:0; width:100%; height: auto; flex-direction: row; align-items: center; justify-content: space-evenly; padding: 8px 12px; border-right: none; border-top: 1px solid var(--line); background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); z-index: 20; }
+      .sidebar-logo, .profile-section { display: none; }
+      .nav-items { flex-direction: row; gap: 6px; padding: 0; justify-content: center; }
+      .nav-item, .settings-nav-item { padding: 8px 14px; font-size: 0.85rem; border-radius: 30px; }
+      .main { margin-left: 0; margin-bottom: 68px; height: calc(100vh - 68px); }
+      .chat-log { padding: 20px 20px 90px 20px; }
+      .input-area { left: 16px; right: 16px; bottom: 16px; padding: 6px 6px 6px 16px; }
+      .message-wrapper { max-width: 88%; }
+      .round-logo { width: 34px; height: 34px; }
+    }
+  </style>
+</head>
+<body>
+<div class="sidebar">
+  <div class="sidebar-logo"><img src="logo.png" alt="Manddle"><span>Manddle</span></div>
+  <div class="nav-items">
+    <a href="chat.html" class="nav-item active">Chat</a>
+    <a href="tasks.html" class="nav-item">Tasks</a>
+    <a href="today.html" class="nav-item">Today</a>
+    <a href="progress.html" class="nav-item">Progress</a>
+    <a href="settings.html" class="settings-nav-item">Settings</a>
+  </div>
+  <div class="profile-section"><div class="profile-item" id="profileBtn">Profile</div></div>
+</div>
+<div class="main">
+  <div class="status-bar">
+    <div class="status-left"><span class="status-indicator"></span><span id="statusText">Loading...</span></div>
+    <div class="round-logo"><img src="logo.png" alt="logo" onerror="this.style.display='none'"></div>
+  </div>
+  <div class="chat-container">
+    <div class="chat-log" id="chatBox"></div>
+    <div class="input-area"><input id="msgInput" placeholder="Type your message..."><button id="sendBtn">Send</button></div>
+  </div>
+</div>
+<div id="profileModal" class="modal"><div class="modal-content"><h3>Profile</h3><label>AI Name</label><input type="text" id="aiNameInput" placeholder="Manddle"><label>Your Name</label><input type="text" id="userNameInput" placeholder="User"><label>Interests</label><input type="text" id="interestsInput" placeholder="e.g., productivity"><div class="modal-buttons"><button class="save-btn" id="saveProfileBtn">Save</button><button class="cancel-btn" id="closeProfileBtn">Cancel</button></div></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = { apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI", authDomain: "manddle.firebaseapp.com", projectId: "manddle", storageBucket: "manddle.firebasestorage.app", messagingSenderId: "126135395338", appId: "1:126135395338:web:22fd0307b5afab46636bf3" };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth(), db = firebase.firestore();
+  let currentUser = null, currentProfile = null, allTasksCache = [], isSending = false;
+  const chatBox = document.getElementById("chatBox"), statusSpan = document.getElementById("statusText");
+  const BACKEND_URL = location.hostname === "localhost"
+  ? "http://127.0.0.1:5000/chat"
+  : "https://manddle-backend.onrender.com/chat";
+  const profileModal = document.getElementById("profileModal"), profileBtn = document.getElementById("profileBtn"), closeProfileBtn = document.getElementById("closeProfileBtn"), saveProfileBtn = document.getElementById("saveProfileBtn");
+  const aiNameInput = document.getElementById("aiNameInput"), userNameInput = document.getElementById("userNameInput"), interestsInput = document.getElementById("interestsInput");
+  profileBtn.onclick = () => { if(currentProfile){ aiNameInput.value=currentProfile.ai_name||"Manddle"; userNameInput.value=currentProfile.user_name||"User"; interestsInput.value=currentProfile.interests||"general"; } profileModal.style.display="flex"; };
+  closeProfileBtn.onclick = () => profileModal.style.display="none";
+  saveProfileBtn.onclick = async () => { if(!currentUser)return; await db.collection("profiles").doc(currentUser.uid).set({ ai_name:aiNameInput.value, user_name:userNameInput.value, interests:interestsInput.value },{merge:true}); currentProfile={...currentProfile, ai_name:aiNameInput.value, user_name:userNameInput.value, interests:interestsInput.value}; profileModal.style.display="none"; statusSpan.innerText=`${currentUser.email} · AI: ${currentProfile.ai_name}`; };
+  function addMessageWithDelete(role, text, docId=null){ const wrapper = document.createElement("div"); wrapper.className=`message-wrapper ${role==="user"?"user":"bot"}`; const msgDiv=document.createElement("div"); msgDiv.className="message"; msgDiv.textContent=text; const delBtn=document.createElement("button"); delBtn.innerHTML="✕"; delBtn.className="delete-msg"; delBtn.onclick=async(e)=>{ e.stopPropagation(); if(docId){ await db.collection("messages").doc(docId).delete(); wrapper.remove(); } }; wrapper.appendChild(msgDiv); wrapper.appendChild(delBtn); chatBox.appendChild(wrapper); chatBox.scrollTop=chatBox.scrollHeight; return wrapper; }
+  function addSystemMessage(text){ const div=document.createElement("div"); div.className="message-system"; div.textContent=text; chatBox.appendChild(div); chatBox.scrollTop=chatBox.scrollHeight; }
+  auth.onAuthStateChanged(async(user)=>{ if(!user){ window.location.href="login.html"; return; } currentUser=user; statusSpan.innerText=user.email; await loadProfile(); await loadAllTasks(); await loadMessages(); });
+  async function loadProfile(){ try{ const doc=await db.collection("profiles").doc(currentUser.uid).get(); currentProfile=doc.exists?doc.data():{user_name:"User",interests:"general",ai_name:"Manddle"}; statusSpan.innerText=`${currentUser.email} · AI: ${currentProfile.ai_name}`; }catch(e){ currentProfile={user_name:"User",interests:"general",ai_name:"Manddle"}; } }
+  async function loadMessages(){ try{ const snap=await db.collection("messages").where("uid","==",currentUser.uid).get(); let msgs=[]; snap.forEach(doc=>msgs.push({id:doc.id,...doc.data()})); msgs.sort((a,b)=>(a.time||0)-(b.time||0)); chatBox.innerHTML=""; if(msgs.length===0) addSystemMessage("No messages yet. Start a conversation."); else msgs.forEach(m=>addMessageWithDelete(m.role,m.text,m.id)); }catch(e){ addSystemMessage("Could not load history."); } }
+  async function loadAllTasks(){ try{ const snap=await db.collection("tasks").where("uid","==",currentUser.uid).get(); let tasks=[]; snap.forEach(doc=>tasks.push({id:doc.id,...doc.data()})); tasks.sort((a,b)=>(a.created_at||0)-(b.created_at||0)); allTasksCache=tasks; }catch(e){ console.error(e); } }
+  document.getElementById("sendBtn").onclick=sendMessage; document.getElementById("msgInput").addEventListener("keypress",e=>e.key==="Enter"&&sendMessage());
+  async function sendMessage(){ if(isSending)return; isSending=true; const input=document.getElementById("msgInput"); const text=input.value.trim(); if(!text||!currentUser){ isSending=false; return; } input.value=""; const userMsgRef=await db.collection("messages").add({uid:currentUser.uid,role:"user",text,time:Date.now()}); addMessageWithDelete("user",text,userMsgRef.id); try{ await loadAllTasks(); await loadProfile(); const snapHist=await db.collection("messages").where("uid","==",currentUser.uid).get(); let rawHist=[]; snapHist.forEach(doc=>rawHist.push({...doc.data(),id:doc.id})); rawHist.sort((a,b)=>(a.time||0)-(b.time||0)); const history=rawHist.map(m=>({text:m.text,role:m.role==="bot"?"assistant":m.role})); const tasksContext=allTasksCache.map((t,i)=>({number:i+1,title:t.title,description:t.description||"",status:t.status,period:t.period})); const res=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:text,history,profile:currentProfile,tasks:tasksContext,currentTime:Date.now()})}); if(!res.ok)throw new Error(`HTTP ${res.status}`); const data=await res.json(); if(data.type==="chat"){ const reply=data.reply||"I didn't understand."; const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:reply,time:Date.now()}); addMessageWithDelete("bot",reply,botRef.id); } else if(data.type==="task"){ const title=data.title?.trim(); if(title){ await db.collection("tasks").add({uid:currentUser.uid,title,description:data.description?.trim()||"",period:data.period?.trim()||"daily",status:"pending",created_at:Date.now()}); await loadAllTasks(); } const reply=data.reply||`Task "${title}" created.`; const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:reply,time:Date.now()}); addMessageWithDelete("bot",reply,botRef.id); } else if(data.type==="complete_task"){ const num=parseInt(data.task_number); if(!isNaN(num)&&num>0&&num<=allTasksCache.length){ const task=allTasksCache[num-1]; const todayStr=new Date().toISOString().slice(0,10); await db.collection("tasks").doc(task.id).collection("completions").add({date:todayStr,completedAt:Date.now()}); await loadAllTasks(); } const reply=data.reply||`Task ${data.task_number} marked as done.`; const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:reply,time:Date.now()}); addMessageWithDelete("bot",reply,botRef.id); } else if(data.type==="edit_task"){ const num=parseInt(data.task_number); if(!isNaN(num)&&num>0&&num<=allTasksCache.length){ const task=allTasksCache[num-1]; const updates={}; if(data.new_title)updates.title=data.new_title; if(data.new_description!==undefined)updates.description=data.new_description; if(data.new_period)updates.period=data.new_period; if(data.new_status)updates.status=data.new_status; await db.collection("tasks").doc(task.id).update(updates); await loadAllTasks(); } const reply=data.reply||`Updated task ${data.task_number}.`; const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:reply,time:Date.now()}); addMessageWithDelete("bot",reply,botRef.id); } else if(data.type==="delete_task"){ const num=parseInt(data.task_number); if(!isNaN(num)&&num>0&&num<=allTasksCache.length){ await db.collection("tasks").doc(allTasksCache[num-1].id).delete(); await loadAllTasks(); } const reply=data.reply||`Deleted task ${data.task_number}.`; const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:reply,time:Date.now()}); addMessageWithDelete("bot",reply,botRef.id); } else { const botRef=await db.collection("messages").add({uid:currentUser.uid,role:"bot",text:data.reply||"Unknown response",time:Date.now()}); addMessageWithDelete("bot",data.reply||"Unknown response",botRef.id); } } catch(e){ console.error(e); addSystemMessage(`Error: ${e.message}. Is Flask running?`); } finally { isSending=false; } }
+</script>
+</body>
+</html>
