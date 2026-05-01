@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Manddle · Chat · Professional Mobile Menu</title>
-  <!-- FAVICON FIX: high-resolution definitions for crisp display on all screens -->
+  <!-- High‑resolution favicon -->
   <link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
@@ -64,10 +64,24 @@
     .delete-msg:hover { opacity: 1 !important; background: rgba(0,0,0,0.08); color: #e03a3a; }
     .message-system { background: #f5f0ea; color: var(--muted); margin: 8px auto; text-align: center; max-width: 80%; font-size: 13px; border-radius: 40px; padding: 8px 16px; }
 
-    /* FLOATING INPUT */
-    .input-area { position: absolute; bottom: 20px; left: 28px; right: 28px; display: flex; gap: 12px; padding: 8px 8px 8px 20px; background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-radius: var(--radius-pill); box-shadow: 0 8px 25px rgba(0,0,0,0.05); border: 1px solid rgba(255,165,0,0.2); }
-    .input-area:focus-within { box-shadow: 0 8px 28px rgba(255,165,0,0.12); border-color: var(--secondary); }
-    .input-area input { flex: 1; padding: 12px 0; border: none; background: transparent; outline: none; font-size: 15px; }
+    /* FLOATING INPUT - fixed positioning relative to chat container */
+    .input-area { 
+      position: absolute; 
+      bottom: 20px; 
+      left: 28px; 
+      right: 28px; 
+      display: flex; 
+      gap: 12px; 
+      padding: 8px 8px 8px 20px; 
+      background: rgba(255,255,255,0.96); 
+      backdrop-filter: blur(16px); 
+      border-radius: var(--radius-pill); 
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08); 
+      border: 1px solid rgba(255,165,0,0.3);
+      z-index: 20;
+    }
+    .input-area:focus-within { box-shadow: 0 8px 28px rgba(255,165,0,0.15); border-color: var(--secondary); }
+    .input-area input { flex: 1; padding: 12px 0; border: none; background: transparent; outline: none; font-size: 16px; }
     .input-area button { padding: 8px 24px; background: var(--secondary); color: white; border: none; font-weight: 590; border-radius: var(--radius-pill); font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
     .input-area button:hover { background: var(--secondary-hover); transform: scale(0.96); }
 
@@ -86,7 +100,7 @@
     .chat-log::-webkit-scrollbar-track { background: transparent; }
     .chat-log::-webkit-scrollbar-thumb { background: #d4cdc3; border-radius: 10px; }
 
-    /* ========== MOBILE SPECIFIC ========== */
+    /* ========== MOBILE SPECIFIC: Floating top buttons & repositioned input ========== */
     .mobile-top-left, .mobile-top-right {
       display: none;
       position: fixed;
@@ -103,32 +117,11 @@
       border: 1px solid var(--line);
       backdrop-filter: blur(4px);
     }
-    .mobile-top-left {
-      top: 20px;
-      left: 20px;
-    }
-    .mobile-top-right {
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      font-weight: 500;
-      color: var(--secondary);
-      background: var(--panel);
-    }
-    /* Keep circle size exactly 48px & inner image scaled nicely */
-    .mobile-top-left img {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      object-fit: cover;
-      display: block;
-    }
-    .mobile-top-right:hover, .mobile-top-left:hover {
-      transform: scale(1.02);
-      background: var(--primary-light);
-    }
+    .mobile-top-left { top: 20px; left: 20px; }
+    .mobile-top-right { top: 20px; right: 20px; font-size: 24px; font-weight: 500; color: var(--secondary); background: var(--panel); }
+    .mobile-top-left img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block; }
+    .mobile-top-right:hover, .mobile-top-left:hover { transform: scale(1.02); background: var(--primary-light); }
 
-    /* hidden bottom menu */
     .mobile-bottom-menu {
       display: none;
       position: fixed;
@@ -143,87 +136,46 @@
       flex-direction: column;
       gap: 12px;
       border: 1px solid var(--line);
-      transition: all 0.2s ease;
     }
-    .mobile-bottom-menu.show {
-      display: flex;
-      animation: fadeSlideUpMobile 0.2s ease-out;
-    }
-    @keyframes fadeSlideUpMobile {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .close-menu-btn {
-      background: transparent;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: var(--muted);
-      align-self: flex-end;
-      line-height: 1;
-      padding: 6px 12px;
-      border-radius: 40px;
-      transition: 0.2s;
-    }
+    .mobile-bottom-menu.show { display: flex; animation: fadeSlideUpMobile 0.2s ease-out; }
+    @keyframes fadeSlideUpMobile { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .close-menu-btn { background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--muted); align-self: flex-end; line-height: 1; padding: 6px 12px; border-radius: 40px; }
     .close-menu-btn:hover { background: rgba(0,0,0,0.05); }
-    .nav-items-mobile {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      width: 100%;
-    }
-    .nav-item-mobile {
-      display: block;
-      padding: 14px 18px;
-      text-decoration: none;
-      color: var(--text);
-      border-radius: 60px;
-      font-weight: 500;
-      background: var(--bg);
-      transition: 0.2s;
-      text-align: center;
-      font-size: 1rem;
-      letter-spacing: -0.2px;
-    }
-    .nav-item-mobile.active-mobile {
-      background: var(--primary-light);
-      color: var(--secondary);
-      font-weight: 600;
-    }
+    .nav-items-mobile { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+    .nav-item-mobile { display: block; padding: 14px 18px; text-decoration: none; color: var(--text); border-radius: 60px; font-weight: 500; background: var(--bg); text-align: center; font-size: 1rem; letter-spacing: -0.2px; }
+    .nav-item-mobile.active-mobile { background: var(--primary-light); color: var(--secondary); font-weight: 600; }
     .nav-item-mobile:active { transform: scale(0.97); }
-    .mobile-profile-item {
-      padding: 14px 18px;
-      cursor: pointer;
-      border-radius: 60px;
-      background: var(--bg);
-      color: var(--text);
-      font-weight: 500;
-      text-align: center;
-      transition: 0.2s;
-      margin-top: 4px;
-    }
+    .mobile-profile-item { padding: 14px 18px; cursor: pointer; border-radius: 60px; background: var(--bg); color: var(--text); font-weight: 500; text-align: center; margin-top: 4px; }
     .mobile-profile-item:active { transform: scale(0.97); background: rgba(0,0,0,0.04);}
     hr.mobile-divider { margin: 8px 0; border-color: var(--line); }
 
-    /* ========== RESPONSIVE ========== */
+    /* ========== RESPONSIVE: Hide desktop sidebar, hide status bar, show floating buttons ========== */
     @media (max-width: 768px) {
       .sidebar { display: none; }
       .main { margin-left: 0; height: 100vh; }
       .status-bar { display: none; }
-      .chat-log { padding: 80px 20px 100px 20px; }
-      .input-area { left: 16px; right: 16px; bottom: 20px; padding: 6px 6px 6px 16px; }
+      /* Increase bottom padding of chat log to avoid input overlap + give extra space */
+      .chat-log { padding: 80px 20px 120px 20px; }
+      /* Input area positioned higher (bottom: 12px) and with safe margin */
+      .input-area {
+        left: 16px;
+        right: 16px;
+        bottom: 12px;
+        padding: 6px 6px 6px 16px;
+        background: rgba(255,255,255,0.98);
+      }
       .message-wrapper { max-width: 88%; }
       .mobile-top-left, .mobile-top-right { display: flex; }
+      /* Ensure chat container doesn't clip input */
+      .chat-container { padding-bottom: 0; }
     }
     @media (min-width: 769px) {
-      .mobile-top-left, .mobile-top-right, .mobile-bottom-menu {
-        display: none !important;
-      }
+      .mobile-top-left, .mobile-top-right, .mobile-bottom-menu { display: none !important; }
     }
   </style>
 </head>
 <body>
-<!-- DESKTOP SIDEBAR -->
+<!-- ORIGINAL DESKTOP SIDEBAR -->
 <div class="sidebar">
   <div class="sidebar-logo"><img src="logo.png" alt="Manddle"><span>Manddle</span></div>
   <div class="nav-items">
@@ -238,7 +190,6 @@
 
 <!-- MAIN CHAT INTERFACE -->
 <div class="main">
-  <!-- Desktop status bar -->
   <div class="status-bar">
     <div class="status-left"><span class="status-indicator"></span><span id="statusText">Loading...</span></div>
     <div class="round-logo"><img src="logo.png" alt="logo" onerror="this.style.display='none'"></div>
@@ -249,20 +200,17 @@
   </div>
 </div>
 
-<!-- MOBILE TOP BUTTONS: Left logo uses logo.png with fallback that does NOT show "M" → preserves circle size -->
+<!-- MOBILE FLOATING ELEMENTS -->
 <div class="mobile-top-left" id="mobileLogoBtn">
-  <img src="logo.png" alt="Manddle" 
-       onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\'%3E%3Ccircle cx=\'16\' cy=\'16\' r=\'14\' fill=\'%23FFE5B4\' stroke=\'%23FFA500\' stroke-width=\'0.8\'/%3E%3C/svg%3E';">
+  <img src="logo.png" alt="Manddle" onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 32 32\'%3E%3Ccircle cx=\'16\' cy=\'16\' r=\'14\' fill=\'%23FFE5B4\' stroke=\'%23FFA500\' stroke-width=\'0.8\'/%3E%3C/svg%3E';">
 </div>
 <div class="mobile-top-right" id="mobileMenuBtn">☰</div>
 
-<!-- MOBILE BOTTOM MENU (professional) -->
+<!-- MOBILE BOTTOM MENU -->
 <div class="mobile-bottom-menu" id="mobileMenuPanel">
-  <div style="display: flex; justify-content: flex-end;">
-    <button class="close-menu-btn" id="closeMobileMenuBtn">✕</button>
-  </div>
+  <div style="display: flex; justify-content: flex-end;"><button class="close-menu-btn" id="closeMobileMenuBtn">✕</button></div>
   <div class="nav-items-mobile">
-    <a href="chat.html" class="nav-item-mobile" data-nav="chat">Chat</a>
+    <a href="chat.html" class="nav-item-mobile active-mobile" data-nav="chat">Chat</a>
     <a href="tasks.html" class="nav-item-mobile" data-nav="tasks">Tasks</a>
     <a href="today.html" class="nav-item-mobile" data-nav="today">Today</a>
     <a href="progress.html" class="nav-item-mobile" data-nav="progress">Progress</a>
@@ -279,7 +227,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
-  // ---------- FIREBASE ----------
+  // ---------- FIREBASE INIT ----------
   const firebaseConfig = { apiKey: "AIzaSyBIU3eJBA4ZFyuGV1aDhEUCNIBxhR582eI", authDomain: "manddle.firebaseapp.com", projectId: "manddle", storageBucket: "manddle.firebasestorage.app", messagingSenderId: "126135395338", appId: "1:126135395338:web:22fd0307b5afab46636bf3" };
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth(), db = firebase.firestore();
@@ -300,26 +248,34 @@
   const mobileProfileBtn = document.getElementById("mobileProfileBtn");
   const mobileLogoBtn = document.getElementById("mobileLogoBtn");
 
+  // Helper: close bottom menu
   function closeBottomMenu() { if(mobileMenuPanel) mobileMenuPanel.classList.remove("show"); }
   function openBottomMenu() { if(mobileMenuPanel) mobileMenuPanel.classList.add("show"); }
   function toggleMobileMenu(e) { e?.stopPropagation(); if(mobileMenuPanel.classList.contains("show")) closeBottomMenu(); else openBottomMenu(); }
-
   function handleDocumentClick(e) {
     if(!mobileMenuPanel) return;
     const isMenuClick = mobileMenuPanel.contains(e.target);
     const isMenuBtnClick = mobileMenuBtn?.contains(e.target);
     if(!isMenuClick && !isMenuBtnClick && mobileMenuPanel.classList.contains("show")) closeBottomMenu();
   }
+  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", toggleMobileMenu);
+  if (closeMobileMenu) closeMobileMenu.addEventListener("click", closeBottomMenu);
+  document.addEventListener("click", handleDocumentClick);
+  if (mobileMenuPanel) mobileMenuPanel.addEventListener("click", (e) => e.stopPropagation());
+  if (mobileLogoBtn) mobileLogoBtn.addEventListener("click", () => { window.location.href = "chat.html"; });
 
+  // Set active class on mobile menu items
   function setActiveMobileMenuItem() {
     const currentPath = window.location.pathname;
-    document.querySelectorAll('.nav-item-mobile').forEach(link => {
+    const mobileLinks = document.querySelectorAll('.nav-item-mobile');
+    mobileLinks.forEach(link => {
       const href = link.getAttribute('href');
       if(href && currentPath.includes(href)) link.classList.add('active-mobile');
       else link.classList.remove('active-mobile');
     });
   }
 
+  // Profile modal logic
   function showProfileModal() {
     if(currentProfile){
       aiNameInput.value = currentProfile.ai_name || "Manddle";
@@ -328,7 +284,6 @@
     }
     profileModal.style.display = "flex";
   }
-
   profileBtn.onclick = showProfileModal;
   if(mobileProfileBtn) mobileProfileBtn.onclick = () => { closeBottomMenu(); showProfileModal(); };
   closeProfileBtn.onclick = () => profileModal.style.display = "none";
@@ -340,7 +295,7 @@
     if(statusSpan) statusSpan.innerText = `${currentUser.email} · AI: ${currentProfile.ai_name}`;
   };
 
-  // Messaging helpers
+  // Message helpers
   function addMessageWithDelete(role, text, docId = null) {
     const wrapper = document.createElement("div");
     wrapper.className = `message-wrapper ${role === "user" ? "user" : "bot"}`;
@@ -368,6 +323,7 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
+  // Auth & data
   auth.onAuthStateChanged(async (user) => {
     if (!user) { window.location.href = "login.html"; return; }
     currentUser = user;
@@ -406,7 +362,7 @@
     } catch (e) { console.error(e); }
   }
 
-  // Send message logic
+  // Send message
   document.getElementById("sendBtn").onclick = sendMessage;
   document.getElementById("msgInput").addEventListener("keypress", e => e.key === "Enter" && sendMessage());
 
@@ -495,13 +451,6 @@
       isSending = false;
     }
   }
-
-  // MOBILE EVENT HANDLERS
-  if (mobileMenuBtn) mobileMenuBtn.addEventListener("click", toggleMobileMenu);
-  if (closeMobileMenu) closeMobileMenu.addEventListener("click", closeBottomMenu);
-  document.addEventListener("click", handleDocumentClick);
-  if (mobileMenuPanel) mobileMenuPanel.addEventListener("click", (e) => e.stopPropagation());
-  if (mobileLogoBtn) mobileLogoBtn.addEventListener("click", () => { window.location.href = "chat.html"; });
   window.addEventListener("pageshow", () => setActiveMobileMenuItem());
   setActiveMobileMenuItem();
 </script>
